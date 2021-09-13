@@ -5,18 +5,30 @@ from werkzeug.exceptions import abort
 
 from flaskr.auth import login_required
 from flaskr.db import get_db
+from flask_paginate import Pagination, get_page_args
 
 bp = Blueprint('blog', __name__)
 
 @bp.route('/')
 def index():
+	page = request.args.get('page', type=int, default=1)
 	db = get_db()
+	per_page = 5 
+
 	posts = db.execute(
 		'SELECT p.id, title, body, created, author_id, username'
 		' FROM post p JOIN user u ON p.author_id = u.id'
-		' ORDER BY created DESC'
+		' ORDER BY created DESC  limit {}, {};'.format((page-1)*per_page, per_page)
 	).fetchall()
-	return render_template('blog/index.html', posts=posts)
+	
+	posts2 = db.execute(
+			'select * from post p join user u on p.author_id = u.id'
+	).fetchall()
+
+	total_page = len(posts2) 
+
+	pagination = Pagination(page=page, per_page=per_page)
+	return render_template('blog/index.html', posts=posts, per_page=per_page, total_page=total_page, pagination=pagination)
 
 @bp.route('/create', methods=('GET', 'POST'))
 @login_required
