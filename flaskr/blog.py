@@ -26,7 +26,7 @@ def index():
 	).fetchall()
 
 	total_page = len(posts2) 
-
+    
 	pagination = Pagination(page=page, per_page=per_page)
 	return render_template('blog/index.html', posts=posts, per_page=per_page, total_page=total_page, pagination=pagination)
 
